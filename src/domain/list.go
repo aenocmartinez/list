@@ -71,6 +71,10 @@ func (l *List) Exists() bool {
 	return l.id > 0
 }
 
+func (l *List) Create() error {
+	return l.repository.Create(l)
+}
+
 func FindListById(id int64, repository ListRepository) List {
 	return repository.FindById(id)
 }

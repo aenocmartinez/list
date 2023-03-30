@@ -1,11 +1,47 @@
 package dao
 
-import "abix360/src/domain"
+import (
+	"abix360/database"
+	"abix360/src/domain"
+	"bytes"
+	"database/sql"
+)
 
-type ListDao struct{}
+type ListDao struct {
+	db *database.ConnectDB
+}
 
-func (l *ListDao) Create(list domain.List) (err error) {
-	return err
+func NewListDao() *ListDao {
+	return &ListDao{
+		db: database.Instance(),
+	}
+}
+
+func (l *ListDao) Create(list *domain.List) (err error) {
+	var query bytes.Buffer
+	query.WriteString("INSERT INTO lists (name) VALUES (?)")
+
+	source := l.db.Source().(*database.MySQL)
+	conn := source.Conn().(*sql.DB)
+
+	stmt, err := conn.Prepare(query.String())
+	if err != nil {
+		return err
+	}
+
+	rs, err := stmt.Exec(list.Name())
+	if err != nil {
+		return err
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	list.WithId(id)
+
+	return nil
 }
 
 func (l *ListDao) Update(list domain.List) (err error) {
